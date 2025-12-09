@@ -158,22 +158,6 @@ tfm-anonimizacion/
 - **LLM**: deteccion contextual con Qwen3-8B (nombres, direcciones, organizaciones)
 - **Both**: combinacion de ambos (segunda pasada de refuerzo)
 
-## Descargar modelo
-
-El modelo entrenado no esta incluido en el repositorio por su tamaño (~200MB). Descargarlo desde Releases:
-
-1. Ir a [Releases](https://github.com/AndreuCrespo/Sistema-automatico-de-anonimizacion-de-datos-sensibles/releases)
-2. Descargar `unified_detector.pt` de la ultima version
-3. Colocar en `models/trained/unified_detector.pt`
-
-```powershell
-# Crear directorio si no existe
-mkdir -p models/trained
-
-# Descargar (reemplazar URL con la de Releases)
-# El archivo estara disponible en la seccion Assets del Release
-```
-
 ## Instalacion
 
 ### Con uv (recomendado)
