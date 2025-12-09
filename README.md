@@ -31,56 +31,84 @@ Procesamiento 100% local, sin dependencias cloud, cumpliendo GDPR.
 
 ```
 tfm-anonimizacion/
-├── backend/                    # API FastAPI
+├── backend/                        # API FastAPI
 │   ├── app/
-│   │   ├── api/endpoints/      # Endpoints REST
-│   │   │   ├── anonymize.py    # POST /api/anonymize
-│   │   │   ├── detect.py       # POST /api/detect
-│   │   │   ├── video.py        # POST /api/process-video
-│   │   │   ├── text.py         # POST /api/analyze-text
-│   │   │   ├── health.py       # GET /api/health
-│   │   │   └── classes.py      # GET /api/classes
-│   │   ├── models/             # Detectores YOLOv8
-│   │   │   ├── unified_detector.py
+│   │   ├── api/endpoints/          # Endpoints REST
+│   │   │   ├── anonymize.py
+│   │   │   ├── classes.py
+│   │   │   ├── detect.py
+│   │   │   ├── health.py
+│   │   │   ├── text.py
+│   │   │   └── video.py
+│   │   ├── core/                   # Configuracion
+│   │   │   ├── config.py
+│   │   │   └── logging_config.py
+│   │   ├── models/                 # Detectores YOLOv8
 │   │   │   ├── face_detector.py
-│   │   │   └── plate_detector.py
-│   │   ├── services/           # Logica de negocio
+│   │   │   ├── multi_detector.py
+│   │   │   ├── plate_detector.py
+│   │   │   └── unified_detector.py
+│   │   ├── schemas/                # Modelos Pydantic
+│   │   │   ├── anonymization.py
+│   │   │   ├── detection.py
+│   │   │   └── health.py
+│   │   ├── services/               # Logica de negocio
 │   │   │   ├── anonymizer.py
 │   │   │   ├── image_processor.py
-│   │   │   ├── video_processor.py
-│   │   │   └── text_analyzer.py
-│   │   └── core/               # Configuracion
-│   │       └── config.py
+│   │   │   ├── text_analyzer.py
+│   │   │   └── video_processor.py
+│   │   ├── utils/
+│   │   │   └── file_handler.py
+│   │   └── main.py
 │   ├── tests/
+│   │   ├── test_api.py
+│   │   └── test_services.py
 │   ├── Dockerfile
 │   └── requirements.txt
 │
-├── frontend/                   # React + MUI
+├── frontend/                       # React + MUI
 │   ├── src/
 │   │   ├── components/
 │   │   │   ├── layout/MainLayout.jsx
-│   │   │   ├── ImageUpload.jsx
+│   │   │   ├── ClassSelector.jsx
+│   │   │   ├── Controls.jsx
 │   │   │   ├── ImagePreview.jsx
-│   │   │   └── Controls.jsx
+│   │   │   ├── ImageUpload.jsx
+│   │   │   ├── VideoPreview.jsx
+│   │   │   └── VideoUpload.jsx
 │   │   ├── pages/
 │   │   │   ├── Home.jsx
 │   │   │   ├── ImageProcessing.jsx
-│   │   │   ├── VideoProcessing.jsx
+│   │   │   ├── Settings.jsx
 │   │   │   ├── TextAnalysis.jsx
-│   │   │   └── Settings.jsx
+│   │   │   └── VideoProcessing.jsx
 │   │   ├── services/api.js
-│   │   └── App.jsx
+│   │   ├── App.jsx
+│   │   ├── index.css
+│   │   └── main.jsx
 │   ├── Dockerfile
-│   └── package.json
+│   ├── index.html
+│   └── vite.config.js
 │
-├── models/trained/             # Modelos entrenados
-│   └── unified_detector.pt     # Detector unificado rostros+matriculas
+├── models/unified_training/        # Configuracion entrenamiento
+│   └── args.yaml
 │
-├── scripts/
-│   └── ollama-entrypoint.sh    # Script inicializacion Ollama
+├── scripts/                        # Scripts de utilidad
+│   ├── create_test_video.py
+│   ├── create_unified_dataset.py
+│   ├── evaluate_model.py
+│   ├── evaluate_unified_model.py
+│   ├── ollama-entrypoint.sh
+│   ├── prepare_datasets.py
+│   ├── train_face_detector.py
+│   ├── train_plate_detector.py
+│   ├── train_unified_model.py
+│   └── train_unified_model_auto.py
 │
-├── docker-compose.yml          # Orquestacion completa
-├── PROJECT.md
+├── docker-compose.yml
+├── pyproject.toml
+├── uv.lock
+├── DOCKER_GUIDE.md
 └── README.md
 ```
 
