@@ -1,0 +1,116 @@
+[project]
+name = "tfm-anonimizacion"
+version = "0.1.0"
+description = "Sistema automático de anonimización de datos sensibles en imágenes"
+authors = [
+    {name = "Andreu Crespo Barberá"}
+]
+readme = "README.md"
+requires-python = ">=3.11"
+
+dependencies = [
+    # Web Framework
+    "fastapi>=0.109.0",
+    "uvicorn[standard]>=0.27.0",
+    "python-multipart>=0.0.6",
+    "pydantic>=2.5.3",
+    "pydantic-settings>=2.1.0",
+    
+    # Machine Learning / Deep Learning
+    "torch>=2.1.2",
+    "torchvision>=0.16.2",
+    "ultralytics>=8.1.0",
+    
+    # Computer Vision
+    "opencv-python>=4.9.0.80",
+    "opencv-contrib-python>=4.9.0.80",
+    "Pillow>=10.2.0",
+    
+    # Data Processing
+    "numpy>=1.26.3",
+    "pandas>=2.1.4",
+    "scipy>=1.11.4",
+    
+    # Utilities
+    "python-dotenv>=1.0.0",
+    "pyyaml>=6.0.1",
+    "tqdm>=4.66.1",
+    "loguru>=0.7.2",
+    
+    # XML Parsing
+    "lxml>=5.1.0",
+    
+    # Image Processing Extra
+    "scikit-image>=0.22.0",
+    "imageio>=2.33.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    # Testing
+    "pytest>=7.4.4",
+    "pytest-asyncio>=0.23.3",
+    "pytest-cov>=4.1.0",
+    "httpx>=0.26.0",
+    
+    # Linting & Formatting
+    "black>=23.12.1",
+    "flake8>=7.0.0",
+    "mypy>=1.8.0",
+    "pylint>=3.0.3",
+]
+
+[tool.uv]
+# Gestión de dependencias de desarrollo
+managed = true
+# NO es un paquete distribuible, es una aplicación
+package = false
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu128" }
+torchvision = { index = "pytorch-cu128" }
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.black]
+line-length = 100
+target-version = ['py311']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.venv
+  | \.eggs
+  | \.tox
+  | build
+  | dist
+  | __pycache__
+)/
+'''
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "backend/tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --cov=backend/app --cov-report=html --cov-report=term"
+
+[tool.pylint.messages_control]
+disable = [
+    "C0111",  # missing-docstring
+    "C0103",  # invalid-name
+    "R0903",  # too-few-public-methods
+]
+
+[tool.pylint.format]
+max-line-length = 100

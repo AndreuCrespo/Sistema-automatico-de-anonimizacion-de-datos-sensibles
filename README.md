@@ -1,0 +1,265 @@
+# Sistema automatico de anonimizacion de datos sensibles
+
+## Descripcion
+
+Sistema completo de anonimizacion automatica de datos sensibles que detecta y anonimiza:
+- Rostros humanos en imagenes y videos
+- Matriculas de vehiculos
+- Datos sensibles en texto (DNI, telefonos, emails, IBAN, tarjetas, nombres, direcciones)
+
+Procesamiento 100% local, sin dependencias cloud, cumpliendo GDPR.
+
+## Stack tecnologico
+
+### Backend
+- Python 3.11+
+- FastAPI (API REST)
+- PyTorch + Ultralytics YOLOv8 (deteccion visual)
+- OpenCV (procesamiento de imagen/video)
+- Ollama + Qwen3-8B (analisis de texto con LLM local)
+
+### Frontend
+- React 18 + Vite
+- Material-UI (MUI)
+- Axios
+
+### Infraestructura
+- Docker + Docker Compose
+- GPU (NVIDIA CUDA 12.4)
+
+## Estructura del proyecto
+
+```
+tfm-anonimizacion/
+├── backend/                    # API FastAPI
+│   ├── app/
+│   │   ├── api/endpoints/      # Endpoints REST
+│   │   │   ├── anonymize.py    # POST /api/anonymize
+│   │   │   ├── detect.py       # POST /api/detect
+│   │   │   ├── video.py        # POST /api/process-video
+│   │   │   ├── text.py         # POST /api/analyze-text
+│   │   │   ├── health.py       # GET /api/health
+│   │   │   └── classes.py      # GET /api/classes
+│   │   ├── models/             # Detectores YOLOv8
+│   │   │   ├── unified_detector.py
+│   │   │   ├── face_detector.py
+│   │   │   └── plate_detector.py
+│   │   ├── services/           # Logica de negocio
+│   │   │   ├── anonymizer.py
+│   │   │   ├── image_processor.py
+│   │   │   ├── video_processor.py
+│   │   │   └── text_analyzer.py
+│   │   └── core/               # Configuracion
+│   │       └── config.py
+│   ├── tests/
+│   ├── Dockerfile
+│   └── requirements.txt
+│
+├── frontend/                   # React + MUI
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── layout/MainLayout.jsx
+│   │   │   ├── ImageUpload.jsx
+│   │   │   ├── ImagePreview.jsx
+│   │   │   └── Controls.jsx
+│   │   ├── pages/
+│   │   │   ├── Home.jsx
+│   │   │   ├── ImageProcessing.jsx
+│   │   │   ├── VideoProcessing.jsx
+│   │   │   ├── TextAnalysis.jsx
+│   │   │   └── Settings.jsx
+│   │   ├── services/api.js
+│   │   └── App.jsx
+│   ├── Dockerfile
+│   └── package.json
+│
+├── models/trained/             # Modelos entrenados
+│   └── unified_detector.pt     # Detector unificado rostros+matriculas
+│
+├── scripts/
+│   └── ollama-entrypoint.sh    # Script inicializacion Ollama
+│
+├── docker-compose.yml          # Orquestacion completa
+├── PROJECT.md
+└── README.md
+```
+
+## API endpoints
+
+### Imagenes
+| Metodo | Ruta | Descripcion |
+|--------|------|-------------|
+| POST | /api/anonymize | Anonimiza imagen (devuelve imagen) |
+| POST | /api/detect | Solo deteccion (devuelve JSON) |
+| GET | /api/classes | Clases disponibles |
+
+### Videos
+| Metodo | Ruta | Descripcion |
+|--------|------|-------------|
+| POST | /api/process-video | Procesa video completo |
+| WS | /api/ws/process-video | Streaming con preview |
+| POST | /api/video-info | Metadata del video |
+
+### Texto
+| Metodo | Ruta | Descripcion |
+|--------|------|-------------|
+| POST | /api/analyze-text | Detecta y anonimiza texto |
+| POST | /api/detect-text | Solo deteccion |
+| GET | /api/text/categories | Categorias disponibles |
+
+### Sistema
+| Metodo | Ruta | Descripcion |
+|--------|------|-------------|
+| GET | /api/health | Estado del sistema |
+
+## Metodos de anonimizacion
+
+### Visual (imagenes/videos)
+- **Gaussian blur**: desenfoque gaussiano (configurable)
+- **Pixelate**: pixelacion por bloques
+- **Mask**: cuadro negro solido
+
+### Texto
+- **Replace**: sustituye por tokens [TIPO-N]
+- **Mask**: reemplaza por asteriscos
+- **Remove**: elimina el dato
+
+## Modos de deteccion de texto
+
+- **Regex**: patrones estructurados (DNI, telefono, email, IBAN, tarjetas, fechas, codigos postales)
+- **LLM**: deteccion contextual con Qwen3-8B (nombres, direcciones, organizaciones)
+- **Both**: combinacion de ambos (segunda pasada de refuerzo)
+
+## Instalacion
+
+### Con uv (recomendado)
+
+[uv](https://docs.astral.sh/uv/) es un gestor de paquetes Python ultrarapido, alternativa a pip.
+
+```powershell
+# Instalar uv (Windows)
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# Clonar repositorio
+git clone https://github.com/usuario/tfm-anonimizacion.git
+cd tfm-anonimizacion
+
+# Instalar dependencias (crea .venv automaticamente)
+uv sync
+
+# Instalar Ollama y modelo LLM
+winget install Ollama
+ollama pull qwen3:8b
+
+# Instalar frontend
+cd frontend
+npm install
+cd ..
+
+# Iniciar servicios
+ollama serve                                           # Terminal 1
+uv run uvicorn backend.app.main:app --reload           # Terminal 2
+cd frontend && npm run dev                             # Terminal 3
+```
+
+### Con pip (alternativa)
+
+```powershell
+# Clonar repositorio
+git clone https://github.com/usuario/tfm-anonimizacion.git
+cd tfm-anonimizacion
+
+# Crear entorno virtual
+python -m venv .venv
+.\.venv\Scripts\activate
+
+# Instalar PyTorch con CUDA
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+
+# Instalar dependencias
+pip install -r backend/requirements.txt
+
+# Instalar Ollama y modelo
+winget install Ollama
+ollama pull qwen3:8b
+
+# Instalar frontend
+cd frontend
+npm install
+cd ..
+
+# Iniciar servicios
+ollama serve                                           # Terminal 1
+cd backend && uvicorn app.main:app --reload            # Terminal 2
+cd frontend && npm run dev                             # Terminal 3
+```
+
+### Docker
+
+```bash
+# Iniciar todos los servicios
+docker-compose up -d
+
+# El modelo Qwen3-8B se descarga automaticamente (~5.2GB)
+```
+
+## Configuracion
+
+Variables de entorno principales (`.env` o docker-compose):
+
+```env
+# Servidor
+HOST=0.0.0.0
+PORT=8000
+DEBUG=False
+
+# Ollama (LLM)
+OLLAMA_URL=http://localhost:11434
+OLLAMA_MODEL=qwen3:8b
+
+# Deteccion
+DETECTION_CONFIDENCE=0.25
+```
+
+## Metricas del Modelo
+
+| Clase | Precision | Recall | F1-Score | mAP50 |
+|-------|-----------|--------|----------|-------|
+| Rostros | 0.92 | 0.89 | 0.90 | 0.91 |
+| Matriculas | 0.88 | 0.85 | 0.86 | 0.87 |
+| General | 0.90 | 0.87 | 0.88 | 0.89 |
+
+Tiempo de procesamiento: <500ms por imagen (GPU)
+
+## Uso
+
+### Imagen
+1. Acceder a http://localhost:3000
+2. Ir a "Image Processing"
+3. Subir imagen
+4. Seleccionar clases a detectar y metodo de anonimizacion
+5. Procesar y descargar resultado
+
+### Video
+1. Ir a "Video Processing"
+2. Subir video (MP4, AVI, MOV)
+3. Configurar opciones
+4. Procesar con preview en tiempo real
+
+### Texto
+1. Ir a "Text Analysis"
+2. Seleccionar modo (Regex/LLM/Both)
+3. Pegar texto
+4. Ver detecciones y texto anonimizado
+
+## Testing
+
+```powershell
+# Tests unitarios
+cd backend
+pytest tests/ -v
+
+# Tests de API
+pytest tests/test_api.py -v
+```
+

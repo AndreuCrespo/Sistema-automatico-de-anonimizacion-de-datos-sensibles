@@ -1,0 +1,47 @@
+# TFM Anonimizacion - Backend Requirements
+# Python 3.11+
+
+# ===== WEB FRAMEWORK =====
+fastapi>=0.115.0
+uvicorn[standard]>=0.34.0
+python-multipart>=0.0.20
+pydantic>=2.10.0
+pydantic-settings>=2.7.0
+
+# ===== MACHINE LEARNING / DEEP LEARNING =====
+ultralytics>=8.3.0
+
+# ===== COMPUTER VISION =====
+opencv-python-headless>=4.10.0.84
+Pillow>=11.0.0
+
+# ===== DATA PROCESSING =====
+numpy>=2.0.0
+pandas>=2.2.0
+scipy>=1.14.0
+
+# ===== UTILITIES =====
+python-dotenv>=1.0.1
+pyyaml>=6.0.2
+tqdm>=4.67.0
+loguru>=0.7.2
+
+# ===== HTTP CLIENT (para Ollama) =====
+httpx>=0.26.0
+
+# ===== XML PARSING =====
+lxml>=5.3.0
+
+# ===== IMAGE PROCESSING EXTRA =====
+scikit-image>=0.25.0
+imageio>=2.37.0
+
+# ===== TESTING (dev) =====
+pytest>=8.0.0
+pytest-asyncio>=0.24.0
+pytest-cov>=6.0.0
+
+# ===== LINTING & FORMATTING (dev) =====
+black>=24.0.0
+flake8>=7.1.0
+mypy>=1.13.0
