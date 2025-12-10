@@ -94,6 +94,7 @@ tfm-anonimizacion/
 │   └── args.yaml
 │
 ├── scripts/                        # Scripts de utilidad
+│   ├── benchmark_performance.py
 │   ├── create_test_video.py
 │   ├── create_unified_dataset.py
 │   ├── evaluate_model.py
