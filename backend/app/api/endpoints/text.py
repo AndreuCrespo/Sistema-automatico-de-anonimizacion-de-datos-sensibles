@@ -3,7 +3,9 @@ Text Analysis Endpoints
 Endpoints para análisis y anonimización de texto
 """
 
+import time
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import List, Optional
 import logging
@@ -124,7 +126,7 @@ async def get_text_categories(mode: str = 'regex'):
     }
 
 
-@router.post("/analyze-text", response_model=TextAnalysisResponse)
+@router.post("/analyze-text")
 async def analyze_text(request: TextAnalysisRequest):
     """
     Analiza texto y detecta/anonimiza datos sensibles
@@ -135,6 +137,8 @@ async def analyze_text(request: TextAnalysisRequest):
     Returns:
         TextAnalysisResponse con texto anonimizado y detecciones
     """
+    start_time = time.perf_counter()
+    
     logger.info(f"Analizando texto de {len(request.text)} caracteres")
     logger.info(f"Categorías solicitadas: {request.categories or 'todas'}")
     logger.info(f"Método: {request.anonymization_method}")
@@ -159,20 +163,28 @@ async def analyze_text(request: TextAnalysisRequest):
             mode=request.detection_mode
         )
 
-        logger.info(f"Análisis completado: {result['total_detections']} detecciones")
+        processing_time_ms = (time.perf_counter() - start_time) * 1000
+        
+        logger.info(f"Análisis completado: {result['total_detections']} detecciones en {processing_time_ms:.2f}ms")
         logger.info(f"Estadísticas: {result['stats']}")
         logger.info(f"Modo usado: {result['mode']}")
 
-        return TextAnalysisResponse(
-            success=True,
-            original_text=result['original_text'],
-            anonymized_text=result['anonymized_text'],
-            detections=result['detections'],
-            total_detections=result['total_detections'],
-            stats=result['stats'],
-            method=result['method'],
-            mode=result['mode'],
-            value_map=result['value_map']
+        response_data = {
+            "success": True,
+            "original_text": result['original_text'],
+            "anonymized_text": result['anonymized_text'],
+            "detections": result['detections'],
+            "total_detections": result['total_detections'],
+            "stats": result['stats'],
+            "method": result['method'],
+            "mode": result['mode'],
+            "value_map": result['value_map'],
+            "processing_time_ms": round(processing_time_ms, 2)
+        }
+        
+        return JSONResponse(
+            content=response_data,
+            headers={"X-Processing-Time-Ms": str(round(processing_time_ms, 2))}
         )
 
     except Exception as e:
