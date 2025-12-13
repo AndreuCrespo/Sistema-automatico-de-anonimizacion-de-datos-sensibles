@@ -230,7 +230,7 @@ cd frontend && npm run dev                             # Terminal 3
 docker-compose up -d
 ```
 
-> **⏱️ Primera ejecución**: El primer arranque puede tardar **5-10 minutos** porque:
+> **Primera ejecución**: El primer arranque puede tardar **5-10 minutos** porque:
 > 1. Se construyen las imágenes de backend y frontend
 > 2. Se descarga el modelo LLM Qwen3-8B (~5.2GB)
 >
