@@ -14,27 +14,57 @@ Esta guía explica cómo levantar el sistema completo usando Docker y Docker Com
    # Verificar que Docker Desktop tenga habilitado WSL2 integration
    ```
 
-3. **Modelo entrenado** debe existir en:
+3. **Espacio en disco**: Al menos **20GB libres**
+   - Imágenes Docker: ~8GB
+   - Modelo LLM Qwen3-8B: ~5.2GB
+   - Modelo YOLOv8 entrenado: ~50MB
+
+4. **Modelo entrenado** debe existir en:
    ```
    models/trained/unified_detector.pt
    ```
 
-## Estructura de servicios
+> **Primera ejecución**: El primer arranque puede tardar **5-10 minutos** porque:
+> 1. Se construyen las imágenes de backend y frontend
+> 2. Se descarga el modelo LLM Qwen3-8B (~5.2GB)
+>
+> Las ejecuciones posteriores tardan menos de 2 minutos.
+
+## Arquitectura de servicios
 
 ```
-┌─────────────────────────────────────────────────┐
-│                   Frontend                       │
-│           React + Vite + Nginx                  │
-│              Puerto: 80                         │
-└────────────────┬────────────────────────────────┘
-                 │ HTTP Proxy
-                 ▼
-┌─────────────────────────────────────────────────┐
-│                   Backend                        │
-│        FastAPI + YOLOv8 + PyTorch GPU           │
-│              Puerto: 8000                       │
-└─────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                         Usuario                                  │
+│                      http://localhost                            │
+└────────────────────────────┬────────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      tfm-frontend                                │
+│                  React + Vite + Nginx                            │
+│                      Puerto: 80                                  │
+└────────────────────────────┬────────────────────────────────────┘
+                             │ HTTP Proxy (/api)
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      tfm-backend                                 │
+│              FastAPI + YOLOv8 + PyTorch GPU                      │
+│                     Puerto: 8000                                 │
+└────────────────────────────┬────────────────────────────────────┘
+                             │ HTTP (análisis texto)
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      tfm-ollama                                  │
+│               Ollama + Qwen3-8B (LLM local)                      │
+│                     Puerto: 11434                                │
+└─────────────────────────────────────────────────────────────────┘
 ```
+
+| Contenedor | Imagen | Función | Puerto |
+|------------|--------|---------|--------|
+| tfm-frontend | nginx:1.27-alpine | Interfaz web React | 80 |
+| tfm-backend | pytorch:2.6.0-cuda12.4 | API REST + detección visual | 8000 |
+| tfm-ollama | ollama/ollama:latest | LLM para análisis de texto | 11434 |
 
 ## Comandos básicos
 
@@ -116,10 +146,33 @@ docker-compose down --rmi all
 
 Una vez levantados los servicios:
 
-- **Frontend**: http://localhost
-- **Backend API**: http://localhost:8000
-- **Documentación API**: http://localhost:8000/docs
-- **Health Check**: http://localhost:8000/api/health
+| Servicio | URL | Descripción |
+|----------|-----|-------------|
+| Frontend | http://localhost | Interfaz web principal |
+| Backend API | http://localhost:8000 | API REST |
+| Documentación API | http://localhost:8000/docs | Swagger UI |
+| Health Check | http://localhost:8000/api/health | Estado del sistema |
+| Ollama | http://localhost:11434 | API del LLM |
+
+## Sistema de Healthcheck
+
+El sistema utiliza un **healthcheck inteligente** para garantizar que los servicios arranquen en el orden correcto:
+
+1. **Ollama** arranca primero y descarga el modelo Qwen3-8B si no existe
+2. Cuando el modelo está listo, crea el archivo señal `/tmp/ollama-ready`
+3. **Backend** espera a que Ollama esté healthy antes de arrancar
+4. **Frontend** espera a que el Backend esté healthy antes de arrancar
+
+```yaml
+# docker-compose.yml - Healthcheck de Ollama
+healthcheck:
+  test: ["CMD", "test", "-f", "/tmp/ollama-ready"]
+  interval: 10s
+  timeout: 5s
+  retries: 60
+```
+
+Esto garantiza que `docker-compose up -d` complete exitosamente sin intervención manual.
 
 ## Verificación de GPU
 
@@ -216,6 +269,18 @@ docker-compose logs -f backend
 # Verificar que el modelo existe
 ls -lh models/trained/unified_detector.pt
 ```
+
+## Volúmenes persistentes
+
+El sistema utiliza volúmenes Docker para persistir datos entre reinicios:
+
+| Volumen | Contenido | Tamaño aprox. |
+|---------|-----------|---------------|
+| `ollama-data` | Modelo LLM Qwen3-8B descargado | ~5.2GB |
+| `./models` | Modelos YOLOv8 entrenados | ~50MB |
+| `./logs` | Logs de la aplicación | Variable |
+
+> **Importante**: El volumen `ollama-data` se crea automáticamente en la primera ejecución. Si eliminas este volumen con `docker-compose down -v`, el modelo se descargará nuevamente en el siguiente arranque (5-10 minutos adicionales).
 
 ## Limpieza
 
