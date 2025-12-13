@@ -2,7 +2,7 @@
 
 ## Descripción
 
-Sistema completo de anonimización automática de datos sensibles que detecta y anonimiza:
+Sistema completo de anonimización automática de datos sensibles que detecta y anonimiza los siguientes elementos:
 - Rostros humanos en imágenes y vídeos
 - Matrículas de vehículos
 - Datos sensibles en texto (DNI, teléfonos, emails, IBAN, tarjetas, nombres, direcciones)
