@@ -17,11 +17,11 @@ services:
     networks:
       - tfm-network
     healthcheck:
-      test: ["CMD", "curl", "-sf", "http://localhost:11434/api/tags"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 120s  # Tiempo extra para descarga del modelo
+      test: ["CMD", "test", "-f", "/tmp/ollama-ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+      start_period: 30s  # Tiempo mínimo antes del primer check
 
   # ====================================
   # Backend - FastAPI + YOLOv8 + GPU
@@ -38,8 +38,8 @@ services:
       - ./models:/app/models:ro
       # Logs persistentes
       - ./logs:/app/logs
-      # Código para desarrollo (comentar en producción)
-      - ./backend:/app/backend
+      # Código para desarrollo
+      - ./backend/app:/app/backend/app
     environment:
       - PYTHONUNBUFFERED=1
       - DEBUG=False

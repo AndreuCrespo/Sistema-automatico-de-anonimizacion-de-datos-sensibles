@@ -228,11 +228,36 @@ cd frontend && npm run dev                             # Terminal 3
 ```bash
 # Iniciar todos los servicios
 docker-compose up -d
-
-# El modelo Qwen3-8B se descarga automaticamente (~5.2GB)
 ```
 
-## Configuracion
+> **⏱️ Primera ejecución**: El primer arranque puede tardar **5-10 minutos** porque:
+> 1. Se construyen las imágenes de backend y frontend
+> 2. Se descarga el modelo LLM Qwen3-8B (~5.2GB)
+>
+> El sistema usa un healthcheck inteligente que espera a que el modelo esté completamente descargado antes de iniciar los demás servicios. **Las ejecuciones posteriores tardan menos de 2 minutos** ya que el modelo queda almacenado en el volumen `ollama-data`.
+
+#### Verificar estado de los servicios
+
+```bash
+# Ver estado de los contenedores
+docker ps
+
+# Ver logs de Ollama (útil durante la primera descarga)
+docker logs -f tfm-ollama
+
+# Ver logs del backend
+docker logs -f tfm-backend
+```
+
+#### Servicios y puertos
+
+| Servicio | Puerto | Descripción |
+|----------|--------|-------------|
+| Frontend | http://localhost:80 | Interfaz web (Nginx + React) |
+| Backend | http://localhost:8000 | API REST (FastAPI + YOLOv8) |
+| Ollama | http://localhost:11434 | Servidor LLM local |
+
+## Configuración
 
 Variables de entorno principales (`.env` o docker-compose):
 

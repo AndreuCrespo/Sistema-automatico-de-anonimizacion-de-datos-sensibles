@@ -4,6 +4,9 @@
 
 set -e
 
+# Eliminar señal de ready anterior (por si es un reinicio)
+rm -f /tmp/ollama-ready
+
 echo "==================================="
 echo "Iniciando Ollama y descargando modelo..."
 echo "==================================="
@@ -39,6 +42,10 @@ fi
 echo "==================================="
 echo "Ollama listo con modelo qwen3:8b"
 echo "==================================="
+
+# Crear archivo señal para healthcheck
+touch /tmp/ollama-ready
+echo "Señal de ready creada: /tmp/ollama-ready"
 
 # Mantener Ollama corriendo en foreground
 wait $OLLAMA_PID
